@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4 fw-bold">Doctor Management</h1>
+                <p class="lead">Manage your medical staff, track specializations, and maintain doctor schedules.</p>
+            </div>
+            <div class="col-md-6 text-center">
+                <img src="https://img.freepik.com/free-vector/doctor-character-background_1270-84.jpg" alt="Doctor" class="img-fluid" style="max-height: 300px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-table me-2"></i>Doctor Records
+            </h5>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
+                <i class="bi bi-plus-circle me-1"></i>Add New Doctor
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>Department</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors %}
+                        <tr>
+                            <td>{{ doctor.doctor_id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-2">
+                                        <i class="bi bi-person-circle text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Dr. {{ doctor.first_name }} {{ doctor.last_name }}</strong>
+                                        <div class="text-muted small">{{ doctor.qualification }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ doctor.specialization }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ doctor.department_name }}</span>
+                            </td>
+                            <td>
+                                <div><i class="bi bi-telephone me-1"></i>{{ doctor.phone_number }}</div>
+                                <div class="text-muted small"><i class="bi bi-envelope me-1"></i>{{ doctor.email }}</div>
+                            </td>
+                            <td>
+                                {% if doctor.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="deleteDoctor({{ doctor.doctor_id }})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Doctor Modal -->
+<div class="modal fade" id="addDoctorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2"></i>Add New Doctor
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDoctorForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-person me-1"></i>First Name</label>
+                            <input type="text" class="form-control" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-person me-1"></i>Last Name</label>
+                            <input type="text" class="form-control" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-award me-1"></i>Qualification</label>
+                            <input type="text" class="form-control" name="qualification" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-briefcase me-1"></i>Specialization</label>
+                            <input type="text" class="form-control" name="specialization" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-building me-1"></i>Department</label>
+                            <select class="form-select" name="department_id" required>
+                                <option value="">Select Department</option>
+                                {% for department in departments %}
+                                <option value="{{ department.department_id }}">{{ department.department_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-person-badge me-1"></i>License Number</label>
+                            <input type="text" class="form-control" name="license_number" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-telephone me-1"></i>Phone Number</label>
+                            <input type="tel" class="form-control" name="phone_number" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-envelope me-1"></i>Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-calendar me-1"></i>Joining Date</label>
+                            <input type="date" class="form-control" name="joining_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-clock-history me-1"></i>Experience (Years)</label>
+                            <input type="number" class="form-control" name="experience_years" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addDoctor()">Add Doctor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addDoctor() {
+    const form = document.getElementById('addDoctorForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/add_doctor', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error adding doctor: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding doctor');
+    });
+}
+
+function deleteDoctor(doctorId) {
+    if (confirm('Are you sure you want to delete this doctor?')) {
+        fetch(`/delete_doctor/${doctorId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting doctor: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting doctor');
+        });
+    }
+}
+</script>
+{% endblock %} 

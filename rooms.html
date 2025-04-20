@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section animate-on-scroll">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">Room Management</h1>
+        <p class="lead mb-5">Efficiently manage hospital rooms and their status</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card animate-on-scroll">
+                <i class="bi bi-door-open stat-icon"></i>
+                <div class="stat-number">{{ rooms|length }}</div>
+                <div class="stat-label">Total Rooms</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card animate-on-scroll">
+                <i class="bi bi-check-circle stat-icon"></i>
+                <div class="stat-number">{{ rooms|selectattr('status', 'equalto', 'Available')|list|length }}</div>
+                <div class="stat-label">Available Rooms</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card animate-on-scroll">
+                <i class="bi bi-people stat-icon"></i>
+                <div class="stat-number">{{ rooms|selectattr('status', 'equalto', 'Occupied')|list|length }}</div>
+                <div class="stat-label">Occupied Rooms</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card animate-on-scroll">
+                <i class="bi bi-tools stat-icon"></i>
+                <div class="stat-number">{{ rooms|selectattr('status', 'equalto', 'Maintenance')|list|length }}</div>
+                <div class="stat-label">Under Maintenance</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Room Button -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <i class="bi bi-plus-circle me-1"></i> Add New Room
+            </button>
+        </div>
+    </div>
+
+    <!-- Patient Rooms Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card animate-on-scroll">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-hospital me-2"></i>
+                        Patient Rooms
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Room Number</th>
+                                    <th>Type</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in rooms if room.room_type == 'Patient Room' %}
+                                <tr class="animate-on-scroll">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-door-closed me-2"></i>
+                                            {{ room.room_number }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-hospital me-1"></i>
+                                            Patient Room
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-people me-2"></i>
+                                            {{ room.bed_count }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if room.status == 'Available' 
+                                            else 'warning' if room.status == 'Occupied' 
+                                            else 'danger' }}">
+                                            <i class="bi bi-{{ 'check-circle' if room.status == 'Available'
+                                                else 'person' if room.status == 'Occupied'
+                                                else 'tools' }} me-1"></i>
+                                            {{ room.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteRoom({{ room.room_id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consultation Rooms Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card animate-on-scroll">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-badge me-2"></i>
+                        Consultation Rooms
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Room Number</th>
+                                    <th>Assigned Doctor</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in rooms if room.room_type == 'Consultation Room' %}
+                                <tr class="animate-on-scroll">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-door-closed me-2"></i>
+                                            {{ room.room_number }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person me-2"></i>
+                                            {% if room.assigned_doctor_id %}
+                                                Dr. {{ room.assigned_doctor_id }}
+                                            {% else %}
+                                                Not Assigned
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if room.status == 'Available' 
+                                            else 'warning' if room.status == 'Occupied' 
+                                            else 'danger' }}">
+                                            <i class="bi bi-{{ 'check-circle' if room.status == 'Available'
+                                                else 'person' if room.status == 'Occupied'
+                                                else 'tools' }} me-1"></i>
+                                            {{ room.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteRoom({{ room.room_id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Rooms Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card animate-on-scroll">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>
+                        Waiting Rooms
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Room Number</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in rooms if room.room_type == 'Waiting Room' %}
+                                <tr class="animate-on-scroll">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-door-closed me-2"></i>
+                                            {{ room.room_number }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-people me-2"></i>
+                                            {{ room.seating_capacity }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if room.status == 'Available' 
+                                            else 'warning' if room.status == 'Occupied' 
+                                            else 'danger' }}">
+                                            <i class="bi bi-{{ 'check-circle' if room.status == 'Available'
+                                                else 'person' if room.status == 'Occupied'
+                                                else 'tools' }} me-1"></i>
+                                            {{ room.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteRoom({{ room.room_id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Labs Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card animate-on-scroll">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-flask me-2"></i>
+                        Laboratories
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Room Number</th>
+                                    <th>Lab Name</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in rooms if room.room_type == 'Lab' %}
+                                <tr class="animate-on-scroll">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-door-closed me-2"></i>
+                                            {{ room.room_number }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-flask me-2"></i>
+                                            {{ room.lab_name }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if room.status == 'Available' 
+                                            else 'warning' if room.status == 'Occupied' 
+                                            else 'danger' }}">
+                                            <i class="bi bi-{{ 'check-circle' if room.status == 'Available'
+                                                else 'person' if room.status == 'Occupied'
+                                                else 'tools' }} me-1"></i>
+                                            {{ room.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteRoom({{ room.room_id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Other Rooms Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card animate-on-scroll">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-grid me-2"></i>
+                        Other Rooms
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Room Number</th>
+                                    <th>Room Purpose</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in rooms if room.room_type == 'Other' %}
+                                <tr class="animate-on-scroll">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-door-closed me-2"></i>
+                                            {{ room.room_number }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            {{ room.other_room_type if room.other_room_type else 'Not Specified' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if room.status == 'Available' 
+                                            else 'warning' if room.status == 'Occupied' 
+                                            else 'danger' }}">
+                                            <i class="bi bi-{{ 'check-circle' if room.status == 'Available'
+                                                else 'person' if room.status == 'Occupied'
+                                                else 'tools' }} me-1"></i>
+                                            {{ room.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteRoom({{ room.room_id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal fade" id="addRoomModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Add New Room
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRoomForm">
+                    <div class="mb-3">
+                        <label for="roomNumber" class="form-label">
+                            <i class="bi bi-door-closed me-1"></i>
+                            Room Number
+                        </label>
+                        <input type="text" class="form-control" id="roomNumber" name="room_number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="roomType" class="form-label">
+                            <i class="bi bi-grid me-1"></i>
+                            Room Type
+                        </label>
+                        <select class="form-select" id="roomType" name="room_type" required onchange="showAdditionalFields()">
+                            <option value="">Select Room Type</option>
+                            <option value="Patient Room">
+                                <i class="bi bi-hospital"></i> Patient Room
+                            </option>
+                            <option value="Consultation Room">
+                                <i class="bi bi-person-badge"></i> Consultation Room
+                            </option>
+                            <option value="Waiting Room">
+                                <i class="bi bi-people"></i> Waiting Room
+                            </option>
+                            <option value="Lab">
+                                <i class="bi bi-flask"></i> Laboratory
+                            </option>
+                            <option value="Other">
+                                <i class="bi bi-grid"></i> Other
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic fields container -->
+                    <div id="additionalFields"></div>
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Status
+                        </label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="Available">
+                                <i class="bi bi-check-circle"></i> Available
+                            </option>
+                            <option value="Occupied">
+                                <i class="bi bi-person"></i> Occupied
+                            </option>
+                            <option value="Maintenance">
+                                <i class="bi bi-tools"></i> Under Maintenance
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">
+                            <i class="bi bi-text-paragraph me-1"></i>
+                            Description
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addRoom()">
+                    <i class="bi bi-plus-circle me-1"></i> Add Room
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAdditionalFields() {
+    const roomType = document.getElementById('roomType').value;
+    const container = document.getElementById('additionalFields');
+    container.innerHTML = '';
+
+    if (!roomType) return;
+
+    let fields = '';
+
+    switch (roomType) {
+        case 'Patient Room':
+            fields = `
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-people me-1"></i>
+                        Bed Capacity
+                    </label>
+                    <input type="number" class="form-control" name="capacity" min="1" required>
+                    <div class="form-text">Number of beds in the room</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-gear me-1"></i>
+                        Equipment
+                    </label>
+                    <input type="text" class="form-control" name="equipment" placeholder="e.g., Ventilator, ECG Machine">
+                </div>
+            `;
+            break;
+
+        case 'Consultation Room':
+            fields = `
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-person-badge me-1"></i>
+                        Assigned Doctor
+                    </label>
+                    <select class="form-select" name="assigned_doctor_id" required>
+                        <option value="">Select Doctor</option>
+                        {% for doctor in doctors %}
+                        <option value="{{ doctor.doctor_id }}">
+                            Dr. {{ doctor.first_name }} {{ doctor.last_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-gear me-1"></i>
+                        Equipment
+                    </label>
+                    <input type="text" class="form-control" name="equipment" placeholder="e.g., Examination Table, BP Monitor">
+                </div>
+            `;
+            break;
+
+        case 'Waiting Room':
+            fields = `
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-people me-1"></i>
+                        Seating Capacity
+                    </label>
+                    <input type="number" class="form-control" name="capacity" min="1" required>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="has_tv" id="hasTV">
+                        <label class="form-check-label" for="hasTV">
+                            <i class="bi bi-tv me-1"></i>
+                            Has TV
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="has_vending_machine" id="hasVending">
+                        <label class="form-check-label" for="hasVending">
+                            <i class="bi bi-cart me-1"></i>
+                            Has Vending Machine
+                        </label>
+                    </div>
+                </div>
+            `;
+            break;
+
+        case 'Lab':
+            fields = `
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-flask me-1"></i>
+                        Lab Name
+                    </label>
+                    <input type="text" class="form-control" name="lab_name" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-gear me-1"></i>
+                        Equipment
+                    </label>
+                    <textarea class="form-control" name="equipment" rows="2" placeholder="List of lab equipment"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-telephone me-1"></i>
+                        Lab Contact
+                    </label>
+                    <input type="tel" class="form-control" name="lab_contact">
+                </div>
+            `;
+            break;
+
+        case 'Other':
+            fields = `
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Room Purpose
+                    </label>
+                    <input type="text" class="form-control" name="purpose" required>
+                </div>
+            `;
+            break;
+    }
+
+    container.innerHTML = fields;
+}
+
+function addRoom() {
+    const form = document.getElementById('addRoomForm');
+    const formData = new FormData(form);
+    
+    fetch('/rooms', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error adding room: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding room');
+    });
+}
+
+function deleteRoom(roomId) {
+    if (confirm('Are you sure you want to delete this room?')) {
+        fetch(`/rooms/${roomId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting room: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting room');
+        });
+    }
+}
+</script>
+{% endblock %} 

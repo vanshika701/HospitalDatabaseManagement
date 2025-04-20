@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section animate-on-scroll">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">Welcome to Hospital Management System</h1>
+        <p class="lead mb-5">Providing quality healthcare services with advanced technology</p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="stat-card animate-on-scroll">
+                            <i class="bi bi-people stat-icon"></i>
+                            <div class="stat-number">{{ patients_count }}</div>
+                            <div class="stat-label">Total Patients</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card animate-on-scroll">
+                            <i class="bi bi-person-badge stat-icon"></i>
+                            <div class="stat-number">{{ doctors_count }}</div>
+                            <div class="stat-label">Active Doctors</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card animate-on-scroll">
+                            <i class="bi bi-calendar-check stat-icon"></i>
+                            <div class="stat-number">{{ appointments_count }}</div>
+                            <div class="stat-label">Today's Appointments</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Appointments -->
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card animate-on-scroll">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        Recent Appointments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in recent_appointments %}
+                                <tr class="animate-on-scroll">
+                                    <td>{{ appointment.patient_first_name }} {{ appointment.patient_last_name }}</td>
+                                    <td>Dr. {{ appointment.doctor_first_name }} {{ appointment.doctor_last_name }}</td>
+                                    <td>{{ appointment.appointment_date }}</td>
+                                    <td>{{ appointment.appointment_time }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if appointment.status == 'Completed' 
+                                            else 'warning' if appointment.status == 'Scheduled' 
+                                            else 'danger' }}">
+                                            {{ appointment.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="container mt-4">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card animate-on-scroll">
+                <div class="card-body text-center">
+                    <i class="bi bi-plus-circle display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Add New Patient</h5>
+                    <p class="card-text">Register a new patient in the system</p>
+                    <a href="/patients" class="btn btn-primary">Go to Patients</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card animate-on-scroll">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-plus display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Schedule Appointment</h5>
+                    <p class="card-text">Book a new appointment</p>
+                    <a href="/appointments" class="btn btn-primary">Go to Appointments</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card animate-on-scroll">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-plus display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Add New Doctor</h5>
+                    <p class="card-text">Register a new doctor</p>
+                    <a href="/doctors" class="btn btn-primary">Go to Doctors</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
